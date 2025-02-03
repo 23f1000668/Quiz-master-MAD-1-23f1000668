@@ -1,5 +1,6 @@
 from flask import Flask,redirect,url_for,render_template,request,flash,session,Blueprint
 import os
+import flask
 import matplotlib.pyplot as plt
 from werkzeug.security import generate_password_hash,check_password_hash
 from models.models import *
