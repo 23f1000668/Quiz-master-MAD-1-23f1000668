@@ -13,6 +13,7 @@ class User(db.Model):
     qualification = db.Column(db.String(50))
     dob = db.Column(db.Date)
     college = db.Column(db.String(100))
+    roles=db.Column(db.String(50),nullable=False,default='user')
     scores = db.relationship('Score', back_populates='user')
 
 class Subject(db.Model):
