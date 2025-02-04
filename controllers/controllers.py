@@ -6,10 +6,12 @@ from werkzeug.security import generate_password_hash,check_password_hash
 from models.models import *
 
 controllers=Blueprint('controllers',__name__)
+
+#home page which would redirect to user dashboard which the user is logined or takes to register page
 @controllers.route('/')
 def home():
     if 'user_id' in session:
-        return redirect(url_for('controllers.view_posts'))
+        return redirect(url_for('controllers.user_dashboard'))
     return redirect(url_for('controllers.register'))
 
 #admin login page
@@ -29,6 +31,7 @@ def admin_login():
             flask('Admin login failed.check your credentials and try again')
     return render_template('admin_login.html')
 
+#register page
 @controllers.route('/register',method=['GET','POST'])
 def register():
     if request.method=='POST':
@@ -45,7 +48,22 @@ def register():
         flask('User registered sucessfully! Please log in !!')
         return redirect(url_for('controllers.login'))
     return render_template('registration.html')
-    
-        
 
-        
+@controllers.route('/login',method=['GET','POST'])
+def login():
+    if request.method=='POST':
+        email=request.form['email']
+        password=request.form['password']
+        user = User.query.filter_by(email=email).first()
+
+        if user and check_password_hash(user.password,password):
+            session['user_id']=user.id
+            session['role']=user.roles
+            flash('Login Successful')
+            if user.roles == 'admin':
+                return redirect(url_for('controllers.admin_dashboard'))
+            else:
+                return redirect(url_for('controllers.user_dashboard'))
+        else:
+            flask('Login failed. Check your credentials and try again')
+            
