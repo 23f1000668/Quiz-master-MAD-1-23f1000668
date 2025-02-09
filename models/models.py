@@ -13,7 +13,7 @@ class User(db.Model):
     qualification = db.Column(db.String(50))
     dob = db.Column(db.Date)
     college = db.Column(db.String(100))
-    roles=db.Column(db.String(50),nullable=False,default='user')
+    roles = db.Column(db.String(50), nullable=False, default='user')
     scores = db.relationship('Score', back_populates='user')
 
 class Subject(db.Model):
@@ -22,7 +22,7 @@ class Subject(db.Model):
     name = db.Column(db.String(50), nullable=False)
     description = db.Column(db.Text)
     remarks = db.Column(db.Text)
-    chapters = db.relationship('Chapter', back_populates='subject')
+    chapters = db.relationship('Chapter', back_populates='subject',cascade="all, delete-orphan")
 
 class Chapter(db.Model):
     __tablename__ = "chapters"
@@ -32,7 +32,7 @@ class Chapter(db.Model):
     description = db.Column(db.Text)
     remarks = db.Column(db.Text)
     subject = db.relationship('Subject', back_populates='chapters')
-    quizzes = db.relationship('Quiz', back_populates='chapter')
+    quizzes = db.relationship('Quiz', back_populates='chapter',cascade="all, delete-orphan")
 
 class Quiz(db.Model):
     __tablename__ = "quizzes"
@@ -43,7 +43,7 @@ class Quiz(db.Model):
     remarks = db.Column(db.Text)
     date_of_quiz = db.Column(db.Date)
     chapter = db.relationship('Chapter', back_populates='quizzes')
-    questions = db.relationship('Question', back_populates='quiz')
+    questions = db.relationship('Question', back_populates='quiz',cascade="all, delete-orphan")
     scores = db.relationship('Score', back_populates='quiz')
 
 class Question(db.Model):
@@ -55,8 +55,8 @@ class Question(db.Model):
     choice2 = db.Column(db.Text, nullable=False)
     choice3 = db.Column(db.Text)
     choice4 = db.Column(db.Text)
-    correct_answer = db.Column(db.Integer, nullable=False)
-    score = db.Column(db.Integer, nullable=False)
+    correct_answer = db.Column(db.Integer)
+    score = db.Column(db.Integer)
     quiz = db.relationship('Quiz', back_populates='questions')
 
 class Score(db.Model):

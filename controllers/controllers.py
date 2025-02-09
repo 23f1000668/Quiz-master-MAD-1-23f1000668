@@ -23,16 +23,16 @@ def admin_login():
 
         user=User.query.filter_by(email=email,roles='admin').first()
         if user and check_password_hash(user.password,password):
-            session['user.id']=user.id
+            session['user_id']=user.id
             session['role']=user.roles
             flask('Admin login successful')
             return redirect(url_for('controllers.admin_dashboard'))
         else:
-            flask('Admin login failed.check your credentials and try again')
+            flash('Admin login failed.check your credentials and try again')
     return render_template('admin_login.html')
 
 #register page
-@controllers.route('/register',method=['GET','POST'])
+@controllers.route('/register',methods=['GET','POST'])
 def register():
     if request.method=='POST':
         username=request.form['username']
@@ -40,16 +40,16 @@ def register():
         password=generate_password_hash(request.form['password'],method='pdkdf2:sha256')
         full_name = request.form['full_name']
         qualification = request.form['qualification']
-        dob = request.form['data of birth']
+        dob = request.form['dob']
         college = request.form['college']
-        new_user=User(username=username,email=email,password=password,full_name=full_name,qualification=qualification,dob=dob,college=college)
+        new_user=User(username=username,email=email,password=password,full_name=full_name,qualification=qualification,dob=dob,college=college,roles="user")
         db.session.add(new_user)
         db.session.commit()
-        flask('User registered sucessfully! Please log in !!')
+        flash('User registered sucessfully! Please log in !!')
         return redirect(url_for('controllers.login'))
     return render_template('registration.html')
 
-@controllers.route('/login',method=['GET','POST'])
+@controllers.route('/login',methods=['GET','POST'])
 def login():
     if request.method=='POST':
         email=request.form['email']
@@ -65,5 +65,5 @@ def login():
             else:
                 return redirect(url_for('controllers.user_dashboard'))
         else:
-            flask('Login failed. Check your credentials and try again')
+            flash('Login failed. Check your credentials and try again')
             
