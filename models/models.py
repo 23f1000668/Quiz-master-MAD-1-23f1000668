@@ -19,7 +19,7 @@ class User(db.Model):
 class Subject(db.Model):
     __tablename__ = "subjects"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(50), nullable=False)
+    name = db.Column(db.String(50), nullable=False,unqique=True)
     description = db.Column(db.Text)
     remarks = db.Column(db.Text)
     chapters = db.relationship('Chapter', back_populates='subject',cascade="all, delete-orphan")
@@ -44,7 +44,7 @@ class Quiz(db.Model):
     date_of_quiz = db.Column(db.Date)
     chapter = db.relationship('Chapter', back_populates='quizzes')
     questions = db.relationship('Question', back_populates='quiz',cascade="all, delete-orphan")
-    scores = db.relationship('Score', back_populates='quiz')
+    scores = db.relationship('Score', back_populates='quiz',cascade="all, delete-orphan")
 
 class Question(db.Model):
     __tablename__ = "questions"
