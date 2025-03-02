@@ -14,7 +14,7 @@ class User(db.Model):
     dob = db.Column(db.Date)
     college = db.Column(db.String(100))
     roles = db.Column(db.String(50), nullable=False, default='user')
-    scores = db.relationship('Score', back_populates='user')
+    scores = db.relationship('Score', back_populates='user',lazy=True)
 
 class Subject(db.Model):
     __tablename__ = "subjects"
@@ -55,7 +55,7 @@ class Question(db.Model):
     choice2 = db.Column(db.Text, nullable=False)
     choice3 = db.Column(db.Text)
     choice4 = db.Column(db.Text)
-    correct_answer = db.Column(db.Integer)
+    correct_answer = db.Column(db.Integer,nullable=False)
     score = db.Column(db.Integer)
     quiz = db.relationship('Quiz', back_populates='questions')
 
