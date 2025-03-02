@@ -19,7 +19,7 @@ class User(db.Model):
 class Subject(db.Model):
     __tablename__ = "subjects"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(50), nullable=False,unqique=True)
+    name = db.Column(db.String(50), nullable=False,unique=True)
     description = db.Column(db.Text)
     remarks = db.Column(db.Text)
     chapters = db.relationship('Chapter', back_populates='subject',cascade="all, delete-orphan")
