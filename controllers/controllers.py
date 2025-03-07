@@ -48,7 +48,7 @@ def register():
         db.session.commit()
         flash('User registered sucessfully! Please log in !!')
         return redirect(url_for('controllers.login'))
-    return render_template('registration.html')
+    return render_template('register.html')
 
 #login page
 @controllers.route('/login',methods=['GET','POST'])
@@ -70,7 +70,7 @@ def login():
             flash('Login failed. Check your credentials and try again')
     return render_template('login.html')
 
-@controllers.route('/user/daashboard')
+@controllers.route('/user/dashboard')
 def user_dashboard():
     if not check_role('user'):
         return render_template('userdashboard')

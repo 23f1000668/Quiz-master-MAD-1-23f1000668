@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask,flash
 from models.models import *
 from controllers.controllers import controllers
 from werkzeug.security import generate_password_hash
