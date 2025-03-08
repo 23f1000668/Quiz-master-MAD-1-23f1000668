@@ -20,3 +20,4 @@ __pycache__
 venv
 controllers/__pycache__
 models/__pycache__
+flask_session
