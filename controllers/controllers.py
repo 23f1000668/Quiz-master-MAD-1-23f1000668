@@ -93,37 +93,38 @@ def user_dashboard():
 @controllers.route("/admin/dashboard")
 def admin_dashboard():
     if not check_role('admin'):
-        flash('Access denied.Your not allowed here')
+        flash('Your not allowed here')
         return redirect(url_for('controllers.login'))
     subjects=Subject.query.all()
-    users=User.query.all()
+    users=User.query.filter_by(roles='user').all()
     return render_template('admin_dashboard.html',subjects=subjects,users=users)
 
 @controllers.route('/admin/quiz/show')
 def quiz_show():
     if not check_role('admin'):
-        flash('You not allowed here')
+        flash('You are not allowed here')
         return redirect(url_for('controllers.login'))
-    quiz=Quiz.query().all()
+    quiz=Quiz.query.all()
     return render_template('admin_quiz.html',quiz=quiz)
 
 @controllers.route('/admin/summary')
 def summary_show():
     if not check_role('admin'):
-        flash('Your not allowed here')
+        flash('Your are not allowed here')
         return redirect(url_for('controllers.login'))
-    score=Score.query().all()
+    score=Score.query.all()
     return render_template('summary_show.html',score=score)
 
 @controllers.route('/admin/subject/create',methods=['GET','POST'])
-def subjects_create():
+def subject_create():
     if not check_role('admin'):
         flash('Your are not allowed here')
         return redirect(url_for('controllers.login'))
     if request.method=='POST':
         name=request.form['name']
         description=request.form['description']
-        new_subject=request.form(name = name,description=description)
+        remarks=request.form['remarks']
+        new_subject=Subject(name = name,description=description,remarks=remarks)
         db.session.add(new_subject)
         db.session.commit()
         flash('Subject created successfully')
@@ -134,13 +135,81 @@ def subjects_create():
 def subject_edit(id):
     if not check_role('admin'):
         flash('You are not allowed here')
-        return redirect(url_for('contollers.login'))
+        return redirect(url_for('controllers.login'))
     subject=Subject.query.get_or_404(id)
     if request.method=='POST':
         subject.name=request.form['name']
         subject.description=request.form['description']
+        subject.remarks=request.form['remarks']
         db.session.commit()
         flash('Subject updated successfully!')
         return redirect(url_for('controllers.admin_dashboard'))
     return render_template('subject_edit.html',subject=subject)
+
+@controllers.route('/admin/subject/<int:id>/delete', methods=['GET','POST'])
+def subject_delete(id):
+    if not check_role('admin'):
+        flash('You are not allowed here')
+        return redirect(url_for('controllers.login'))
+    subject=Subject.query.get_or_404(id)
+    db.session.delete(subject)
+    db.session.commit()
+    flash('Subject deleted successfully!')
+    return redirect(url_for('controllers.admin_dashboard'))
+
+@controllers.route('/admin/subject/<int:id>',methods=['GET','POST'])
+def subject_show(id):
+    if not check_role('admin'):
+        flash('You are not allowed here')
+        return redirect(url_for('controllers.login'))
+    subject=Subject.query.get_or_404(id)
+    return render_template('subject_show.html',subject=subject)
+
+@controllers.route('/admin/subject/<int:subject_id>/chapter/create', methods=['GET', 'POST'])
+def chapter_create(subject_id):
+    if not check_role('admin'):
+        flash('Access denied')
+        return redirect(url_for('controllers.login'))
+
+    subject = Subject.query.get_or_404(subject_id)
+
+    if request.method == 'POST':
+        name = request.form['name']
+        description = request.form['description']
+        new_chapter = Chapter(name=name, description=description, subject_id=subject_id)
+        db.session.add(new_chapter)
+        db.session.commit()
+        flash('Chapter created successfully!')
+        return redirect(url_for('controllers.subject_show', id=subject_id))
+
+    return render_template('chapter_create.html', subject=subject)
+
+@controllers.route('/admin/chapter/<int:id>/edit',methods=['GET','POST'])
+def chapter_edit(id):
+    if not check_role('admin'):
+        flash('You are not allowed here')
+        return redirect(url_for('controllers.login'))
+    
+    chapter=Chapter.query.get_or_404(id)
+
+    if request.method=='POST':
+        chapter.name=request.form['name']
+        chapter.description=request.form['description']
+        db.session.commit()
+        flash('Chapter updated successfully!')
+        return redirect(url_for('controllers.subject_show,id=chapter.subject_id'))
+    return render_template('chapter_edit.html',chapter=chapter)
+
+@controllers.route('/admin/chapter/<int:id>/delete',methods=['POST'])
+def chapter_delete(id):
+    if not check_role('admin'):
+        flash('You are not allowed here')
+        return redirect(url_for('controllers.login'))
+    
+    chapter=Chapter.query.get_or_404(id)
+    subject_id=chapter.subject_id
+    db.session.delete(chapter)
+    db.session.commit()
+    flash('Chapter deleted successfully!')
+    return redirect(url_for('controllers.subject_show',id=subject_id))
 

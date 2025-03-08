@@ -1,0 +1,25 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<div class="container">
+    <h2 class="text-center">Edit Subject</h2>
+    <form method="POST" action="{{url_for('controllers.subject_edit',id=subject.id)}}">
+        <div class = "mb-3">
+            <label for="name" class="form-label">Name:</label>
+            <input type="text" class="form-control" id="name" name="name" value="{{ subject.name }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="description" class="form-label">Description:</label>
+            <textarea class="form-control" id="description" name="description">{{ subject.description }}</textarea>
+        </div>
+        <div class="mb-3">
+            <label for="remarks" class="form-label">Remarks:</label>
+            <textarea class="form-control" id="remarks" name="remarks">{{ subject.remarks }}</textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Update</button>
+        <a href="{{ url_for('controllers.admin_dashboard') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -19,28 +19,22 @@
                     <a class="nav-link" href ="{{url_for('controllers.logout')}}">Log out</a>
                 </li>
             </ul>
-            <!--
             
-            <form class="d-flex" action="{{url_for('controllers.admin_search')}}" method="GET">
-                <input type="search" placeholder="Search" name="search">
-                <button class="btn btn-outline-success" type="submit" >Search</button>
-            </form>
-            -->
         </div>
     </nav>
     <div class="text-center text-success fw-bold">Welcome Admin</div>
     <div class="container-fluid">
+        <a href="{{url_for('controllers.subject_create')}}" class="btn btn-primary">Add Subject</a>
         {% for subject in subjects %}
-        <a href="{{url_for('controllers.create_subject')}}" class="btn btn-primary float-end">Add Subject</a>
         <div class="row">
             <div clas="col-sm">
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">
-                            <a class="fw-bold" href="{{url_for('subject_show',id='subject.id')}}">{{subject.name}}</a>
+                            <a class="fw-bold" href="{{url_for('controllers.subject_show',id=subject.id)}}">{{subject.name}}</a>
                         </h5>
                         <a href="{{url_for('controllers.subject_edit',id=subject.id)}}" class="btn btn-sm btn-warning">Edit</a>
-                        <a href="{{url_for('controllers.subjects_delete',id=subject.id)}}" class="btn btn-sm btn-danger">Delete</a>
+                        <a href="{{url_for('controllers.subject_delete',id=subject.id)}}" class="btn btn-sm btn-danger">Delete</a>
                         <h6>Chapters:</h6>
                         <ul list="list-group">
                             {% for chapter in subject.chapters %}
@@ -51,7 +45,7 @@
                             {% endfor %}
                         </ul>
                         <a href="{{ url_for('controllers.chapter_create', subject_id=subject.id) }}" class="btn btn-sm btn-info">Add Chapter</a>
-                    </div>
+             </div>
                 </div>
                 
             </div>
