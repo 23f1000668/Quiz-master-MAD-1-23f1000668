@@ -1,0 +1,45 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<div class="container">
+    <h2>Chapter: {{ chapter.name }}</h2>
+    <p>{{ chapter.description }}</p>
+    <p>Remarks: {{ chapter.remarks }}</p>
+
+    <h3>Quizzes in this Chapter:</h3>
+    {% if quizzes %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Remarks</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for quiz in quizzes %}
+                <tr>
+                    <td>{{ quiz.name }}</td>
+                    <td>{{ quiz.description }}</td>
+                    <td>{{ quiz.remarks }}</td>
+                    <td>{{ quiz.date_of_quiz }}</td>
+                    <td>
+                        <a href="{{ url_for('controllers.question_create', quiz_id=quiz.id) }}" class="btn btn-sm btn-primary">Add Question</a>
+                        <form method="POST" action="{{ url_for('controllers.quiz_delete', id=quiz.id) }}" style="display: inline;">
+                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No quizzes found for this chapter.</p>
+    {% endif %}
+
+    <a href="{{ url_for('controllers.quiz_create', chapter_id=chapter.id) }}" class="btn btn-primary">Create New Quiz</a>
+    <a href="{{ url_for('controllers.subject_show', id=chapter.subject_id) }}" class="btn btn-secondary">Back to Subject</a>
+</div>
+{% endblock %}

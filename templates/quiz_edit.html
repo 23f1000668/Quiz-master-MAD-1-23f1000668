@@ -1,0 +1,28 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<div class="container">
+    <h2>Edit Quiz</h2>
+    <form method="POST" action="{{ url_for('controllers.quiz_edit', id=quiz.id) }}">
+        <div class="mb-3">
+            <label for="name" class="form-label">Name:</label>
+            <input type="text" class="form-control" id="name" name="name" value="{{ quiz.name }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="description" class="form-label">Description:</label>
+            <textarea class="form-control" id="description" name="description">{{ quiz.description }}</textarea>
+        </div>
+        <div>
+            <label for="remarks" class="form-label">Remarks:</label>
+            <textarea class="form-control" id ="remarks" name="remarks">{{ quiz.remarks}}</textarea>
+
+        </div>
+        <div class="mb-3">
+            <label for="date_of_quiz" class="form-label">Date of Quiz:</label>
+            <input type="date" class="form-control" id="date_of_quiz" name="date_of_quiz" value="{{ quiz.date_of_quiz.strftime('%Y-%m-%d') }}" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Update</button>
+        <a href="{{ url_for('controllers.quiz_show') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

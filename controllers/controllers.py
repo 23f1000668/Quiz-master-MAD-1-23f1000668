@@ -104,8 +104,8 @@ def quiz_show():
     if not check_role('admin'):
         flash('You are not allowed here')
         return redirect(url_for('controllers.login'))
-    quiz=Quiz.query.all()
-    return render_template('admin_quiz.html',quiz=quiz)
+    quizzes=Quiz.query.all()
+    return render_template('admin_quiz.html',quizzes=quizzes)
 
 @controllers.route('/admin/summary')
 def summary_show():
@@ -146,7 +146,7 @@ def subject_edit(id):
         return redirect(url_for('controllers.admin_dashboard'))
     return render_template('subject_edit.html',subject=subject)
 
-@controllers.route('/admin/subject/<int:id>/delete', methods=['GET','POST'])
+@controllers.route('/admin/subject/<int:id>/delete', methods=['POST'])
 def subject_delete(id):
     if not check_role('admin'):
         flash('You are not allowed here')
@@ -157,7 +157,7 @@ def subject_delete(id):
     flash('Subject deleted successfully!')
     return redirect(url_for('controllers.admin_dashboard'))
 
-@controllers.route('/admin/subject/<int:id>',methods=['GET','POST'])
+@controllers.route('/admin/subject/<int:id>',methods=['GET'])
 def subject_show(id):
     if not check_role('admin'):
         flash('You are not allowed here')
@@ -176,7 +176,8 @@ def chapter_create(subject_id):
     if request.method == 'POST':
         name = request.form['name']
         description = request.form['description']
-        new_chapter = Chapter(name=name, description=description, subject_id=subject_id)
+        remarks=request.form['remarks']
+        new_chapter = Chapter(name=name, description=description,remarks=remarks, subject_id=subject_id)
         db.session.add(new_chapter)
         db.session.commit()
         flash('Chapter created successfully!')
@@ -195,9 +196,10 @@ def chapter_edit(id):
     if request.method=='POST':
         chapter.name=request.form['name']
         chapter.description=request.form['description']
+        chapter.remarks=request.form['remarks']
         db.session.commit()
         flash('Chapter updated successfully!')
-        return redirect(url_for('controllers.subject_show,id=chapter.subject_id'))
+        return redirect(url_for('controllers.subject_show',id=chapter.subject_id))
     return render_template('chapter_edit.html',chapter=chapter)
 
 @controllers.route('/admin/chapter/<int:id>/delete',methods=['POST'])
@@ -213,3 +215,132 @@ def chapter_delete(id):
     flash('Chapter deleted successfully!')
     return redirect(url_for('controllers.subject_show',id=subject_id))
 
+@controllers.route('/admin/chapter/<int:id>')
+def chapter_show(id):
+    if not check_role('admin'):
+        flash('You are not allowed here')
+        return redirect(url_for('controllers.login'))
+    chapter = Chapter.query.get_or_404(id)
+    quizzes = Quiz.query.filter_by(chapter_id=chapter.id).all()  # Fetch quizzes for this chapter
+    return render_template('chapter_show.html', chapter=chapter, quizzes=quizzes)
+
+@controllers.route('/admin/chapter/<int:chapter_id>/quiz/create',methods=['GET','POST'])
+def quiz_create(chapter_id):
+    if not check_role('admin'):
+        flash('You are not allowed here')
+        return redirect(url_for('controllers.login'))
+    
+    chapter=Chapter.query.get_or_404(chapter_id)
+
+    if request.method=='POST':
+        name=request.form['name']
+        description=request.form['description']
+        remarks=request.form['remarks']
+        date_of_quiz = datetime.strptime(request.form['date_of_quiz'], '%Y-%m-%d').date()
+        new_quiz = Quiz(name=name, description=description, remarks=remarks,date_of_quiz=date_of_quiz, chapter_id=chapter_id)
+        db.session.add(new_quiz)
+        db.session.commit()
+        flash('Quiz created successfully!')
+        return redirect(url_for('controllers.quiz_show'))
+
+    return render_template('quiz_create.html', chapter=chapter)
+
+@controllers.route('/admin/quiz/<int:id>/edit',methods=['GET','POST'])
+def quiz_edit(id):
+    if not check_role('admin'):
+        flash('You are not allowed here')
+        return redirect(url_for('controllers.login'))
+    
+    quiz=Quiz.query.get_or_404(id)
+
+    if request.method == 'POST':
+        quiz.name = request.form['name']
+        quiz.description = request.form['description']
+        quiz.remarks=request.form['remarks']
+        quiz.date_of_quiz = datetime.strptime(request.form['date_of_quiz'], '%Y-%m-%d').date()
+        db.session.commit()
+        flash('Quiz updated successfully!')
+        return redirect(url_for('controllers.quiz_show'))
+
+    return render_template('quiz_edit.html', quiz=quiz)
+
+@controllers.route('/admin/quiz/<int:id>/delete',methods=['POST'])
+def quiz_delete(id):
+    if not check_role('admin'):
+        flash('You are not allowed here')
+        return redirect(url_for('controllers.login'))
+    
+    quiz=Quiz.query.get_or_404(id)
+    db.session.delete(quiz)
+    db.session.commit()
+    flash('Quiz deleted successfully!')
+    return redirect(url_for('controllers.quiz_show'))
+
+@controllers.route('/admin/quiz/<int:id>')
+def quiz_show_detail(id):
+    if not check_role('admin'):
+        flash('You are not allowed here')
+        return redirect(url_for('controllers.login'))
+    quiz = Quiz.query.get_or_404(id)
+    questions = Question.query.filter_by(quiz_id=quiz.id).all()
+    return render_template('quiz_show_detail.html', quiz=quiz, questions=questions)
+
+@controllers.route('/admin/quiz/<int:quiz_id>/question/create', methods=['GET', 'POST'])
+def question_create(quiz_id):
+    if not check_role('admin'):
+        flash('You are not allowed here')
+        return redirect(url_for('controllers.login'))
+
+    quiz = Quiz.query.get_or_404(quiz_id)
+
+    if request.method == 'POST':
+        question_statement = request.form['question_statement']
+        choice1 = request.form['choice1']
+        choice2 = request.form['choice2']
+        choice3 = request.form['choice3']
+        choice4 = request.form['choice4']
+        correct_answer = int(request.form['correct_answer'])
+        score = int(request.form['score']) if request.form['score'] else 1
+        new_question = Question(question_statement=question_statement, choice1=choice1, choice2=choice2,choice3=choice3, choice4=choice4, correct_answer=correct_answer, score=score,quiz_id=quiz_id)
+        db.session.add(new_question)
+        db.session.commit()
+        flash('Question created successfully!')
+        return redirect(url_for('controllers.quiz_show_detail',id=quiz_id))
+
+    return render_template('question_create.html', quiz=quiz)
+
+@controllers.route('/admin/question/<int:id>/edit', methods=['GET', 'POST'])
+def question_edit(id):
+    if not check_role('admin'):
+        flash('Access denied')
+        return redirect(url_for('controllers.login'))
+
+    question = Question.query.get_or_404(id)
+    quiz_id = question.quiz_id
+
+    if request.method == 'POST':
+        question.question_statement = request.form['question_statement']
+        question.choice1 = request.form['choice1']
+        question.choice2 = request.form['choice2']
+        question.choice3 = request.form['choice3']
+        question.choice4 = request.form['choice4']
+        question.correct_answer = int(request.form['correct_answer'])
+        question.score = int(request.form['score']) if request.form['score'] else 1
+        db.session.commit()
+        flash('Question updated successfully!')
+        return redirect(url_for('controllers.quiz_show_detail', id=quiz_id))
+
+    return render_template('question_edit.html', question=question)
+
+@controllers.route('/admin/question/<int:id>/delete', methods=['POST'])
+def question_delete(id):
+    if not check_role('admin'):
+        flash('Access denied')
+        return redirect(url_for('controllers.login'))
+
+    question = Question.query.get_or_404(id)
+    quiz_id = question.quiz_id
+    db.session.delete(question)
+    db.session.commit()
+    flash('Question deleted successfully!')
+    return redirect(url_for('controllers.quiz_show_detail',  id=quiz_id))

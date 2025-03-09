@@ -1,0 +1,52 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<div class="container">
+    <h2>Quiz: {{ quiz.name }}</h2>
+    <p>{{ quiz.description }}</p>
+    <p>Remarks: {{ quiz.remarks }}</p>
+    <p>Date: {{ quiz.date_of_quiz }}</p>
+
+    <h3>Questions in this Quiz:</h3>
+    {% if questions %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Question Statement</th>
+                    <th>Choice 1</th>
+                    <th>Choice 2</th>
+                    <th>Choice 3</th>
+                    <th>Choice 4</th>
+                    <th>Correct Answer</th>
+                    <th>Score</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for question in questions %}
+                <tr>
+                    <td>{{ question.question_statement }}</td>
+                    <td>{{ question.choice1 }}</td>
+                    <td>{{ question.choice2 }}</td>
+                    <td>{{ question.choice3 }}</td>
+                    <td>{{ question.choice4 }}</td>
+                    <td>{{ question.correct_answer }}</td>
+                    <td>{{ question.score }}</td>
+                    <td>
+                        <a href="{{ url_for('controllers.question_edit', id=question.id) }}" class="btn btn-sm btn-warning">Edit</a>
+                        <form method="POST" action="{{ url_for('controllers.question_delete', id=question.id) }}" style="display: inline;">
+                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No questions found for this quiz.</p>
+    {% endif %}
+
+    <a href="{{ url_for('controllers.question_create', quiz_id=quiz.id) }}" class="btn btn-primary">Add New Question</a>
+    <a href="{{ url_for('controllers.quiz_show') }}" class="btn btn-secondary">Back to Quizzes</a>
+</div>
+{% endblock %}

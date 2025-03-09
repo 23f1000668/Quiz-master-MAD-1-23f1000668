@@ -1,0 +1,43 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<div class="container">
+    <h2>Edit Question</h2>
+    <form method="POST" action="{{ url_for('controllers.question_edit', id=question.id) }}">
+        <div class="mb-3">
+            <label for="question_statement" class="form-label">Question Statement:</label>
+            <textarea class="form-control" id="question_statement" name="question_statement"
+                required>{{ question.question_statement }}</textarea>
+        </div>
+        <div class="mb-3">
+            <label for="choice1" class="form-label">Choice 1:</label>
+            <input type="text" class="form-control" id="choice1" name="choice1" value="{{ question.choice1 }}"
+                required>
+        </div>
+        <div class="mb-3">
+            <label for="choice2" class="form-label">Choice 2:</label>
+            <input type="text" class="form-control" id="choice2" name="choice2" value="{{ question.choice2 }}"
+                required>
+        </div>
+        <div class="mb-3">
+            <label for="choice3" class="form-label">Choice 3:</label>
+            <input type="text" class="form-control" id="choice3" name="choice3" value="{{ question.choice3 }}">
+        </div>
+        <div class="mb-3">
+            <label for="choice4" class="form-label">Choice 4:</label>
+            <input type="text" class="form-control" id="choice4" name="choice4" value="{{ question.choice4 }}">
+        </div>
+        <div class="mb-3">
+            <label for="correct_answer" class="form-label">Correct Answer (1-4):</label>
+            <input type="number" class="form-control" id="correct_answer" name="correct_answer" min="1" max="4"
+                value="{{ question.correct_answer }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="score" class="form-label">Score:</label>
+            <input type="number" class="form-control" id="score" name="score" value="{{ question.score }}">
+        </div>
+        <button type="submit" class="btn btn-primary">Update</button>
+        <a href="{{ url_for('controllers.quiz_show') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

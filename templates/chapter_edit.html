@@ -1,0 +1,23 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<div class="container">
+    <h2>Edit Chapter</h2>
+    <form method="POST" action ="{{url_for('controllers.chapter_edit',id=chapter.id)}}">
+        <div class="mb-3">
+            <label for="name" class="form-label">Name:</label>
+            <input type="text" class="form-control" id="name" name="name" value="{{ chapter.name }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="description" class="form-label">Description:</label>
+            <textarea class="form-control" id="description" name="description">{{ chapter.description }}</textarea>
+        </div>
+        <div class="mb-3">
+            <label for="remarks" class="form-label">Remarks:</label>
+            <textarea class="form-control" id="remarks" name="remarks">{{ chapter.remarks }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Update</button>
+        <a href="{{ url_for('controllers.subject_show', id=chapter.subject_id) }}" class="btn btn-secondary">Cancel</a>
+
+    </form>
+    {% endblock %}
