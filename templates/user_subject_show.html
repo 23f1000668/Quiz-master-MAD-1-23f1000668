@@ -1,0 +1,32 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<div class="container">
+    <h2>Subject: {{ subject.name }}</h2>
+    <p>{{ subject.description }}</p>
+
+    <h3>Available Chapters</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+    {% if subject.chapters %}
+        
+            {% for chapter in subject.chapters %}
+            <tr>
+                <td><a href="{{ url_for('controllers.user_chapter_show', chapter_id=chapter.id) }}">{{ chapter.name }}</a></td>
+                <td>{{ chapter.description }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No chapters available for this subject.</p>
+    {% endif %}
+    <a href="{{ url_for('controllers.user_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+</div>
+{% endblock %}

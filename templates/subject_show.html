@@ -13,6 +13,7 @@
             <tr>
                 <th>Name</th>
                 <th>Description</th>
+                <th>Remarks</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -21,6 +22,7 @@
             <tr>
                 <td><a href="{{ url_for('controllers.chapter_show', id=chapter.id) }}">{{ chapter.name }}</a></td>
                 <td>{{ chapter.description }}</td>
+                <td>{{chapter.remarks}}</td>
                 <td>
                     <a href="{{ url_for('controllers.chapter_edit', id=chapter.id) }}" class="btn btn-sm btn-warning">Edit</a>
                     <form method="POST" action="{{ url_for('controllers.chapter_delete', id=chapter.id) }}" style="display: inline;">

@@ -2,9 +2,11 @@ from flask import Flask,flash
 from models.models import *
 from controllers.controllers import controllers
 from werkzeug.security import generate_password_hash
+
 app=Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI']="sqlite:///Quiz_master.db"
 app.config['SECRET_KEY']="Quiz_master"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 

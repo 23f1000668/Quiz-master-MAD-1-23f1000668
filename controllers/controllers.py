@@ -4,17 +4,39 @@ import matplotlib.pyplot as plt
 from werkzeug.security import generate_password_hash,check_password_hash
 from models.models import *
 from datetime import datetime
+from sqlalchemy import and_
 
 controllers=Blueprint('controllers',__name__)
+
 def check_role(role):
     if 'user_id' in session and session['role']==role:
         return True
     return False
+
+'''def can_attempt_quiz(f):
+    @warps(f)
+    def attempt_quiz(*args,**kwargs):
+        quiz_id=kwargs.get('quiz.id')
+        quiz=Quiz.query.get_or_404(quiz_id)
+        if quiz_id:
+            flash("Quiz not found")
+            return redirect(url_for('controllers.available_quizzes'))
+        user_id=session.get('user_id')
+        if user_id is None:
+            flash("You must be logged in to attempt the quiz")
+            return redirect(url_for('controllers.login'))
+        return f(*args,**kwargs)
+    return attempt_quiz
+'''
+
 #home page which would redirect to user dashboard which the user is logined or takes to register page
 @controllers.route('/')
 def home():
     if 'user_id' in session:
-        return redirect(url_for('controllers.user_dashboard'))
+        if check_role('user'):
+            return redirect(url_for('controllers.user_dashboard'))
+        else:
+            return redirect(url_for('controllers.admin_dashboard'))
     return redirect(url_for('controllers.register'))
 
 #admin login page
@@ -81,13 +103,20 @@ def logout():
     session.clear()
     flash('You have been looged out.')
     return redirect(url_for('controllers.home'))
+
 #user dashboard
 @controllers.route('/user/dashboard')
 def user_dashboard():
     if not check_role('user'):
         flash('Access denied.You must be logged in as a user')
         return redirect(url_for('controllers.login'))
-    return render_template('user_dashboard.html')
+    subjects=Subject.query.all()
+    user_id = session.get('user_id')
+    user = User.query.get(user_id)
+    
+    scores = Score.query.filter_by(user_id=user_id).all()
+    
+    return render_template('user_dashboard.html', subjects=subjects, scores=scores, user=user)
 
 #admin dashboard
 @controllers.route("/admin/dashboard")
@@ -114,6 +143,18 @@ def summary_show():
         return redirect(url_for('controllers.login'))
     score=Score.query.all()
     return render_template('summary_show.html',score=score)
+
+@controllers.route('/admin/user/<int:id>/delete')
+def user_delete(id):
+    if not check_role('admin'):
+        flash('You are not allowed here')
+        return redirect(url_for('controllers.login'))
+    user=User.query.get_or_404(id)
+    Score.query.filter_by(user_id=user.id).delete()
+    db.session.delete(user)
+    db.session.commit()
+    flash('User deleted')
+    return redirect(url_for('controllers.admin_dashboard'))
 
 @controllers.route('/admin/subject/create',methods=['GET','POST'])
 def subject_create():
@@ -151,6 +192,7 @@ def subject_delete(id):
     if not check_role('admin'):
         flash('You are not allowed here')
         return redirect(url_for('controllers.login'))
+    
     subject=Subject.query.get_or_404(id)
     db.session.delete(subject)
     db.session.commit()
@@ -344,3 +386,104 @@ def question_delete(id):
     db.session.commit()
     flash('Question deleted successfully!')
     return redirect(url_for('controllers.quiz_show_detail',  id=quiz_id))
+
+@controllers.route('/user/available_quizzes')
+def available_quizzes():
+    if not check_role('user'):
+        flash('Access denied.You must be logged in as a user')
+        return redirect(url_for('controllers.login'))
+    today = datetime.now().date()
+    quizzes = Quiz.query.filter(Quiz.date_of_quiz <= today).all()
+    return render_template('available_quizzes.html', quizzes=quizzes)
+
+@controllers.route('/user/chapter/<int:chapter_id>')
+def user_chapter_show(chapter_id):
+    if not check_role('user'):
+        flash('You are not allowed here')
+        return redirect(url_for('controllers.login'))
+    chapter = Chapter.query.get_or_404(chapter_id)
+    today = datetime.now().date()
+    quizzes = Quiz.query.filter(Quiz.chapter_id == chapter.id, Quiz.date_of_quiz <= today).all()
+    return render_template('user_chapter_show.html', chapter=chapter, quizzes=quizzes)
+
+@controllers.route('/user/subject/<int:subject_id>')
+def user_subject_show(subject_id):
+    if not check_role('user'):
+        flash('You are not allowed here')
+        return redirect(url_for('controllers.login'))
+    subject = Subject.query.get_or_404(subject_id)
+    return render_template('user_subject_show.html', subject=subject)
+
+@controllers.route('/user/attempt_quiz/<int:quiz_id>', methods=['GET', 'POST'])
+def attempt_quiz(quiz_id):
+    if not check_role('user'):
+        flash('Access denied. You must be logged in as a user.')
+        return redirect(url_for('controllers.login'))
+    
+    quiz = Quiz.query.get_or_404(quiz_id)
+    today = datetime.now().date()
+
+    if quiz.date_of_quiz > today:
+        flash('Quiz Expired. Try other quiz')
+        return redirect(url_for('controllers.user_dashboard'))
+    
+    questions = Question.query.filter_by(quiz_id=quiz_id).all()
+
+    total_questions = len(questions)
+    current_question_index = session.get(f'quiz_{quiz_id}_current_question', 0)
+    
+    if request.method == 'POST':
+        user_answer = request.form.get('answer')
+        question_id = int(request.form.get('question_id'))
+        
+        if user_answer:
+            # Initialize answers dictionary in session if it doesn't exist
+            if f'quiz_{quiz_id}_answers' not in session:
+                session[f'quiz_{quiz_id}_answers'] = {}
+            
+            # Convert to string for dictionary key since session serializes to JSON
+            session[f'quiz_{quiz_id}_answers'][str(question_id)] = int(user_answer)
+            session.modified = True  # Ensure session is saved
+        
+        # Check if submit button was clicked
+        if 'submit' in request.form:
+            total_score = 0
+            answers = session.get(f'quiz_{quiz_id}_answers', {})
+            
+            for question in questions:
+                if str(question.id) in answers and answers[str(question.id)] == question.correct_answer:
+                    total_score += question.score if question.score else 1
+            
+            user_id = session.get('user_id')
+            new_attempt = Score(quiz_id=quiz_id, user_id=user_id, total_score=total_score, timestamp=datetime.now())
+            db.session.add(new_attempt)
+            db.session.commit()
+            
+            # Clear session data for this quiz
+            session.pop(f'quiz_{quiz_id}_answers', None)
+            session.pop(f'quiz_{quiz_id}_current_question', None)
+
+            flash(f'Quiz completed successfully! Your score: {total_score}')
+            return redirect(url_for('controllers.user_dashboard'))
+        elif 'save_and_next' in request.form:
+            # If it's "Save and Next", increment the question index
+            current_question_index += 1
+            if current_question_index >= total_questions:
+                current_question_index = total_questions - 1
+            
+            session[f'quiz_{quiz_id}_current_question'] = current_question_index
+            session.modified = True
+
+    # Get the current question to display
+    current_question = questions[current_question_index]
+    
+    return render_template(
+        'user_attempt_quiz.html',
+        quiz=quiz,
+        question=current_question,  # Fixed typo: qustion -> question
+        current_question_index=current_question_index + 1,
+        total_questions=total_questions
+    )
+    
+
+    

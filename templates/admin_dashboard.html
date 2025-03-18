@@ -34,7 +34,9 @@
                             <a class="fw-bold" href="{{url_for('controllers.subject_show',id=subject.id)}}">{{subject.name}}</a>
                         </h5>
                         <a href="{{url_for('controllers.subject_edit',id=subject.id)}}" class="btn btn-sm btn-warning">Edit</a>
-                        <a href="{{url_for('controllers.subject_delete',id=subject.id)}}" class="btn btn-sm btn-danger">Delete</a>
+                        <form action="{{ url_for('controllers.subject_delete', id=subject.id) }}" method="POST" style="display: inline;">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
                         <h6>Chapters:</h6>
                         <ul list="list-group">
                             {% for chapter in subject.chapters %}
@@ -44,7 +46,9 @@
                             </li>
                             {% endfor %}
                         </ul>
-                        <a href="{{ url_for('controllers.chapter_create', subject_id=subject.id) }}" class="btn btn-sm btn-info">Add Chapter</a>
+                        <form action="{{ url_for('controllers.subject_delete', id=subject.id) }}" method="POST" style="display: inline;">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
              </div>
                 </div>
                 
@@ -61,6 +65,7 @@
                             <th>Username</th>
                             <th>Email</th>
                             <th>Full Name</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -70,6 +75,7 @@
                             <td>{{ user.username }}</td>
                             <td>{{ user.email }}</td>
                             <td>{{ user.full_name }}</td>
+                            <td><a href="{{url_for('controllers.user_delete',id=user.id)}}" class="btn btn-sm btn-danger">Delete</a></td>
                         </tr>
                         {% endfor %}
                     </tbody>

@@ -1,0 +1,20 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<div class="container">
+    <h2>Chapter: {{ chapter.name }}</h2>
+    <p>{{ chapter.description }}</p>
+
+    <h3>Available Quizzes</h3>
+    {% if quizzes %}
+        <ul>
+            {% for quiz in quizzes %}
+                <li>{{ quiz.name }} - <a href="{{ url_for('controllers.attempt_quiz', quiz_id=quiz.id) }}">Start Quiz</a> - Number of questions: {{quiz.questions|length}}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No quizzes available for this chapter.</p>
+    {% endif %}
+    <a href="{{ url_for('controllers.user_subject_show', subject_id=chapter.subject_id) }}" class="btn btn-secondary">Back to Subject</a>
+</div>
+{% endblock %}

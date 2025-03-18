@@ -1,0 +1,36 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<div class="container">
+    <h2>Available Quizzes</h2>
+    {% if quizzes %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Quiz Name</th>
+                <th>Chapter</th>
+                <th>Subject</th>
+                <th>Date</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for quiz in quizzes %}
+            <tr>
+                <td>{{ quiz.name }}</td>
+                <td>{{ quiz.chapter.name }}</td>
+                <td>{{ quiz.chapter.subject.name }}</td>
+                <td>{{ quiz.date_of_quiz }}</td>
+                <td>
+                    <a href="{{ url_for('controllers.attempt_quiz', quiz_id=quiz.id) }}" class="btn btn-primary">Start Quiz</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No available quizzes at the moment.</p>
+    {% endif %}
+    <a href="{{ url_for('controllers.user_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+</div>
+{% endblock %}
