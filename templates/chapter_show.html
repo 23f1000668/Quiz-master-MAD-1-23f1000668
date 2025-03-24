@@ -21,7 +21,7 @@
             <tbody>
                 {% for quiz in quizzes %}
                 <tr>
-                    <td>{{ quiz.name }}</td>
+                   <td> <a href="{{ url_for('controllers.quiz_show_detail', id=quiz.id) }}">{{ quiz.name }}</a></td>
                     <td>{{ quiz.description }}</td>
                     <td>{{ quiz.remarks }}</td>
                     <td>{{ quiz.date_of_quiz }}</td>
@@ -30,6 +30,7 @@
                         <form method="POST" action="{{ url_for('controllers.quiz_delete', id=quiz.id) }}" style="display: inline;">
                             <button type="submit" class="btn btn-sm btn-danger">Delete</button>
                         </form>
+                        <a href="{{url_for('controllers.quiz_edit',id=quiz.id)}}"class="btn btn-sm btn-warning">Edit the Quiz Details</a>
                     </td>
                 </tr>
                 {% endfor %}

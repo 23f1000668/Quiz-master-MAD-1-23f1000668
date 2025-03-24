@@ -1,10 +1,15 @@
 from flask import Flask,redirect,url_for,render_template,request,flash,session,Blueprint
-import os
-import matplotlib.pyplot as plt
 from werkzeug.security import generate_password_hash,check_password_hash
 from models.models import *
 from datetime import datetime
-from sqlalchemy import and_
+import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import io
+import base64
+import os
+from collections import defaultdict
 
 controllers=Blueprint('controllers',__name__)
 
@@ -12,22 +17,6 @@ def check_role(role):
     if 'user_id' in session and session['role']==role:
         return True
     return False
-
-'''def can_attempt_quiz(f):
-    @warps(f)
-    def attempt_quiz(*args,**kwargs):
-        quiz_id=kwargs.get('quiz.id')
-        quiz=Quiz.query.get_or_404(quiz_id)
-        if quiz_id:
-            flash("Quiz not found")
-            return redirect(url_for('controllers.available_quizzes'))
-        user_id=session.get('user_id')
-        if user_id is None:
-            flash("You must be logged in to attempt the quiz")
-            return redirect(url_for('controllers.login'))
-        return f(*args,**kwargs)
-    return attempt_quiz
-'''
 
 #home page which would redirect to user dashboard which the user is logined or takes to register page
 @controllers.route('/')
@@ -124,8 +113,8 @@ def admin_dashboard():
     if not check_role('admin'):
         flash('Your not allowed here')
         return redirect(url_for('controllers.login'))
-    subjects=Subject.query.all()
-    users=User.query.filter_by(roles='user').all()
+    subjects = Subject.query.all()
+    users = User.query.filter_by(roles='user').all()
     return render_template('admin_dashboard.html',subjects=subjects,users=users)
 
 @controllers.route('/admin/quiz/show')
@@ -133,7 +122,7 @@ def quiz_show():
     if not check_role('admin'):
         flash('You are not allowed here')
         return redirect(url_for('controllers.login'))
-    quizzes=Quiz.query.all()
+    quizzes = Quiz.query.all()
     return render_template('admin_quiz.html',quizzes=quizzes)
 
 @controllers.route('/admin/summary')
@@ -141,8 +130,58 @@ def summary_show():
     if not check_role('admin'):
         flash('Your are not allowed here')
         return redirect(url_for('controllers.login'))
-    score=Score.query.all()
-    return render_template('summary_show.html',score=score)
+    
+    scores = Score.query.all()
+    quizzes = Quiz.query.all()
+    total_users = User.query.filter_by(roles='user').count()
+    total_subjects = Subject.query.count()
+    total_chapters = Chapter.query.count()
+    total_quizzes = Quiz.query.count()
+    total_attempts = Score.query.count()
+
+    quiz_data = []
+    for quiz in quizzes:
+        attempts = Score.query.filter_by(quiz_id=quiz.id).count()
+        avg_score = db.session.query(db.func.avg(Score.total_score)).filter(Score.quiz_id == quiz.id).scalar() or 0
+        quiz_data.append({
+            "Quiz Name": quiz.name,
+            "Subject": quiz.chapter.subject.name,
+            "Attempts": max(0, attempts),
+            "Avg. Score": round(avg_score, 2)
+        })
+
+    plt.figure(figsize=(12, 6))
+    subjects = [q['Subject'] for q in quiz_data]
+    attempts = [q['Attempts'] for q in quiz_data]
+    plt.bar([q['Quiz Name'] for q in quiz_data], attempts, color=plt.cm.tab10(range(len(subjects))))
+    plt.title('Quiz Attempts by Subject')
+    plt.xlabel('Quiz Name')
+    plt.ylabel('Number of Attempts')
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+
+    bar_buffer = io.BytesIO()
+    plt.savefig(bar_buffer, format='png')
+    bar_buffer.seek(0)
+    bar_chart = base64.b64encode(bar_buffer.getvalue()).decode()
+    plt.close()
+
+    subject_count = defaultdict(int)
+    for q in quiz_data:
+        subject_count[q['Subject']] += 1
+
+    plt.figure(figsize=(8, 8))
+    plt.pie(subject_count.values(), labels=subject_count.keys(), 
+        autopct='%1.1f%%', colors=plt.cm.tab20.colors)
+    plt.title('Subject-wise Quiz Distribution')
+    plt.axis('equal')
+    pie_buffer = io.BytesIO()
+    plt.savefig(pie_buffer, format='png')
+    pie_buffer.seek(0)
+    pie_chart = base64.b64encode(pie_buffer.getvalue()).decode()
+    plt.close()
+
+    return render_template('summary_show.html',total_users=total_users,total_subjects=total_subjects,total_chapters=total_chapters,total_quizzes=total_quizzes,total_attempts=total_attempts,bar_chart=bar_chart,pie_chart=pie_chart)
 
 @controllers.route('/admin/user/<int:id>/delete')
 def user_delete(id):
@@ -325,7 +364,8 @@ def quiz_show_detail(id):
         return redirect(url_for('controllers.login'))
     quiz = Quiz.query.get_or_404(id)
     questions = Question.query.filter_by(quiz_id=quiz.id).all()
-    return render_template('quiz_show_detail.html', quiz=quiz, questions=questions)
+    scores = Score.query.filter_by(quiz_id=quiz.id).join(User).order_by(Score.timestamp.desc()).all()
+    return render_template('quiz_show_detail.html', quiz=quiz, questions=questions, scores=scores)
 
 @controllers.route('/admin/quiz/<int:quiz_id>/question/create', methods=['GET', 'POST'])
 def question_create(quiz_id):
@@ -437,15 +477,12 @@ def attempt_quiz(quiz_id):
         question_id = int(request.form.get('question_id'))
         
         if user_answer:
-            # Initialize answers dictionary in session if it doesn't exist
             if f'quiz_{quiz_id}_answers' not in session:
                 session[f'quiz_{quiz_id}_answers'] = {}
             
-            # Convert to string for dictionary key since session serializes to JSON
             session[f'quiz_{quiz_id}_answers'][str(question_id)] = int(user_answer)
-            session.modified = True  # Ensure session is saved
+            session.modified = True
         
-        # Check if submit button was clicked
         if 'submit' in request.form:
             total_score = 0
             answers = session.get(f'quiz_{quiz_id}_answers', {})
@@ -459,14 +496,12 @@ def attempt_quiz(quiz_id):
             db.session.add(new_attempt)
             db.session.commit()
             
-            # Clear session data for this quiz
             session.pop(f'quiz_{quiz_id}_answers', None)
             session.pop(f'quiz_{quiz_id}_current_question', None)
 
             flash(f'Quiz completed successfully! Your score: {total_score}')
             return redirect(url_for('controllers.user_dashboard'))
         elif 'save_and_next' in request.form:
-            # If it's "Save and Next", increment the question index
             current_question_index += 1
             if current_question_index >= total_questions:
                 current_question_index = total_questions - 1
@@ -474,16 +509,54 @@ def attempt_quiz(quiz_id):
             session[f'quiz_{quiz_id}_current_question'] = current_question_index
             session.modified = True
 
-    # Get the current question to display
     current_question = questions[current_question_index]
     
     return render_template(
         'user_attempt_quiz.html',
         quiz=quiz,
-        question=current_question,  # Fixed typo: qustion -> question
+        question=current_question,
         current_question_index=current_question_index + 1,
         total_questions=total_questions
     )
-    
 
+@controllers.route('/user/summary')
+def user_summary():
+    if not check_role('user'):
+        flash('Access denied. You must be logged in as a user.')
+        return redirect(url_for('controllers.login'))
     
+    user_id = session.get('user_id')
+    user = User.query.get_or_404(user_id)
+    scores = Score.query.filter_by(user_id=user_id).all()
+    
+    subject_scores = defaultdict(list)
+    for score in scores:
+        subject_scores[score.quiz.chapter.subject.name].append(score.total_score)
+    
+    avg_scores = {subject: sum(scores) / len(scores) for subject, scores in subject_scores.items()}
+    max_scores = {subject: max(scores) for subject, scores in subject_scores.items()}
+    
+    plt.figure(figsize=(10, 5))
+    plt.bar(avg_scores.keys(), avg_scores.values())
+    plt.title('Average Scores by Subject')
+    plt.xlabel('Subject')
+    plt.ylabel('Average Score')
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+    
+    bar_buffer = io.BytesIO()
+    plt.savefig(bar_buffer, format='png')
+    bar_buffer.seek(0)
+    bar_chart = base64.b64encode(bar_buffer.getvalue()).decode()
+    plt.close()
+    plt.figure(figsize=(8, 8))
+    plt.pie(max_scores.values(), labels=max_scores.keys(), autopct='%1.1f%%')
+    plt.title('Max Score Distribution by Subject')
+    plt.axis('equal')
+    pie_buffer = io.BytesIO()
+    plt.savefig(pie_buffer, format='png')
+    pie_buffer.seek(0)
+    pie_chart = base64.b64encode(pie_buffer.getvalue()).decode()
+    plt.close()
+    
+    return render_template('user_summary.html', user=user, scores=scores,bar_chart=bar_chart, pie_chart=pie_chart)

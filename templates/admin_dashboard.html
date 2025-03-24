@@ -2,7 +2,7 @@
 
 {% block body %}
 <div class="containner">
-    <div class="text-center">Admin Dashboard</div>
+    <div class="text-center"><strong>Admin Dashboard</strong></div>
     <nav class="navbar navbar-expand-sm bg-light">
         <div class="container-fluid">
             <ul class="navbar-nav">
@@ -18,18 +18,19 @@
                 <li>
                     <a class="nav-link" href ="{{url_for('controllers.logout')}}">Log out</a>
                 </li>
+                
             </ul>
-            
+            <div>hello</div>
         </div>
     </nav>
-    <div class="text-center text-success fw-bold">Welcome Admin</div>
+    <div class="text-center text-success fw-bold"><strong>Welcome Admin</strong></div>
     <div class="container-fluid">
         <a href="{{url_for('controllers.subject_create')}}" class="btn btn-primary">Add Subject</a>
         {% for subject in subjects %}
-        <div class="row">
-            <div clas="col-sm">
+        <div class="row mt-4">
+            <div clas="col-md-3">
                 <div class="card">
-                    <div class="card-body">
+                    <div class="card-body md-3">
                         <h5 class="card-title">
                             <a class="fw-bold" href="{{url_for('controllers.subject_show',id=subject.id)}}">{{subject.name}}</a>
                         </h5>

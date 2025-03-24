@@ -1,0 +1,75 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<div class="container">
+    <h2>Admin Summary Dashboard</h2>
+    <nav class="navbar navbar-expand-sm bg-light">
+        <div class="container-fluid">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{url_for('controllers.admin_dashboard')}}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{url_for('controllers.quiz_show')}}">Quiz</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{url_for('controllers.summary_show')}}">Summary</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{url_for('controllers.logout')}}">Log out</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-header">Total Users</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ total_users }}</h5>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-header">Total Subjects</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ total_subjects }}</h5>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-white bg-danger mb-3">
+                <div class="card-header">Total Quizzes</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ total_quizzes }}</h5>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-header">Total Attempts</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ total_attempts }}</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <h3>Quiz Attempts by Subject</h3>
+            <img src="data:image/png;base64,{{ bar_chart }}" alt="Bar Chart" class="img-fluid mt-3">
+        </div>
+        
+        <div class="col-md-12 mt-5">
+            <h3>Subject-wise Quiz Distribution</h3>
+            <img src="data:image/png;base64,{{ pie_chart }}" alt="Pie Chart" class="img-fluid mt-3">
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -42,6 +42,7 @@
                     <td>{{ quiz.remarks }}</td>
                     <td>{{ quiz.date_of_quiz }}</td>
                     <td>
+                        <a href="{{url_for('controllers.quiz_edit',id=quiz.id)}}"class="btn btn-sm btn-warning">Edit</a>
                          <form method="POST" action="{{ url_for('controllers.quiz_delete', id=quiz.id) }}" style="display: inline;">
                             <button type="submit" class="btn btn-sm btn-danger">Delete</button>
                         </form>

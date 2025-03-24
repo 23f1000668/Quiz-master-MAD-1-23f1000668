@@ -2,8 +2,8 @@
 
 {% block body %}
 <div class="container">
-    <h2>Subject: {{ subject.name }}</h2>
-    <p>Description: {{ subject.description }}</p>
+    <h2>User Summary</h2>
+    <p>Welcome, {{ user.username }}!</p>
     <nav class="navbar navbar-expand-sm bg-light">
         <div class="container-fluid">
             <ul class="navbar-nav">
@@ -23,28 +23,40 @@
             
         </div>
     </nav>
-    <h3>Available Chapters</h3>
-    <table class="table">
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <h3>Average Scores by Subject</h3>
+            <img src="data:image/png;base64,{{ bar_chart }}" alt="Bar Chart" style="width: 100%;">
+        </div>
+        
+        <div class="col-md-6">
+            <h3>Max Score Distribution by Subject</h3>
+            <img src="data:image/png;base64,{{ pie_chart }}" alt="Pie Chart" style="width: 100%;">
+        </div>
+    </div>
+
+    <h3 class="mt-4">Your Quiz Scores</h3>
+    {% if scores %}
+    <table class="table table-striped mt-3">
         <thead>
             <tr>
-                <th>Name</th>
-                <th>Description</th>
+                <th>Quiz Name</th>
+                <th>Score</th>
+                <th>Date</th>
             </tr>
         </thead>
         <tbody>
-    {% if subject.chapters %}
-        
-            {% for chapter in subject.chapters %}
+            {% for score in scores %}
             <tr>
-                <td><a href="{{ url_for('controllers.user_chapter_show', chapter_id=chapter.id) }}">{{ chapter.name }}</a></td>
-                <td>{{ chapter.description }}</td>
+                <td>{{ score.quiz.name }}</td>
+                <td>{{ score.total_score }}</td>
+                <td>{{ score.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
     {% else %}
-        <p>No chapters available for this subject.</p>
+    <p>No quiz attempts recorded yet.</p>
     {% endif %}
-    <a href="{{ url_for('controllers.user_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
 </div>
 {% endblock %}

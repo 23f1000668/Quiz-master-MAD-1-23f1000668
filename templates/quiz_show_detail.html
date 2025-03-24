@@ -2,14 +2,15 @@
 
 {% block body %}
 <div class="container">
-    <h2>Quiz: {{ quiz.name }}</h2>
-    <p>{{ quiz.description }}</p>
+    <h2><strong>Quiz: {{ quiz.name }}</strong></h2>
+    <p><strong>Description:</strong>{{ quiz.description }}</p>
     <p>Remarks: {{ quiz.remarks }}</p>
     <p>Date: {{ quiz.date_of_quiz }}</p>
-
+    <p>Total Question: {{questions|length}}</p>
+    <a href="{{url_for('controllers.quiz_edit',id=quiz.id)}}"class="btn btn-sm btn-warning">Edit the Quiz Details</a>
     <h3>Questions in this Quiz:</h3>
     {% if questions %}
-        <table class="table">
+        <table class="table table-striped">
             <thead>
                 <tr>
                     <th>Question Statement</th>
@@ -48,5 +49,31 @@
 
     <a href="{{ url_for('controllers.question_create', quiz_id=quiz.id) }}" class="btn btn-primary">Add New Question</a>
     <a href="{{ url_for('controllers.quiz_show') }}" class="btn btn-secondary">Back to Quizzes</a>
+    <h3>Details of Users attempted this Quiz:</h3>
+    {% if scores %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Score</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for score in scores %}
+                <tr>
+                    <td>{{ score.user.name }}</td>
+                    <td>{{ score.user.email }}</td>
+                    <td>{{ score.total_score }}</td>
+                    <td>{{ score.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No User have attempted this quiz.</p>
+    {% endif %} 
 </div>
 {% endblock %}
