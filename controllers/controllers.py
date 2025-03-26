@@ -5,11 +5,13 @@ from datetime import datetime
 import pandas as pd
 import matplotlib
 matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
 import io
 import base64
 import os
 from collections import defaultdict
+from sqlalchemy import  or_
 
 controllers=Blueprint('controllers',__name__)
 
@@ -560,3 +562,40 @@ def user_summary():
     plt.close()
     
     return render_template('user_summary.html', user=user, scores=scores,bar_chart=bar_chart, pie_chart=pie_chart)
+
+@controllers.route('/admin/search')
+def admin_search():
+    if not check_role('admin'):
+        flash('You are not allowed here!')
+        return redirect(url_for('controllers.login'))
+    
+    query = request.args.get('query','')
+
+    users = User.query.filter(or_(User.username.ilike(f'%{query}%'),User.email.ilike(f'%{query}%'),User.email.ilike(f'%{query}%'),User.qualification.ilike(f'%{query}%'),User.college.ilike(f'%{query}%'))).all()
+
+    subjects = Subject.query.filter(or_(Subject.name.ilike(f'%{query}%'),Subject.description.ilike(f'%{query}%'),Subject.remarks.ilike(f'%{query}%'))).all()
+
+    chapters = Chapter.query.filter(or_(Chapter.name.ilike(f'%{query}%'),Chapter.description.ilike(f'%{query}%'),Chapter.remarks.ilike(f'%{query}%'))).all()
+
+    quizzes = Quiz.query.filter(or_(Quiz.name.ilike(f'%{query}%'),Quiz.description.ilike(f'%{query}%'),Quiz.remarks.ilike(f'%{query}%'))).all()
+
+    questions = Question.query.filter(or_(Question.question_statement.ilike(f'%{query}%'))).all()
+
+    return render_template('admin_search.html',users=users,subjects=subjects,chapters=chapters,quizzes=quizzes,questions=questions)
+
+@controllers.route('/user/search')
+def user_search():
+    if not check_role('user'):
+        flash('Your are not allowed here!')
+        return redirect(url_for('controllers.login'))
+    
+    query = request.args.get('query','')
+
+    subjects = Subject.query.filter(or_(Subject.name.ilike(f'%{query}%'),Subject.description.ilike(f'%{query}%'),Subject.remarks.ilike(f'%{query}%'))).all()
+
+    chapters = Chapter.query.filter(or_(Chapter.name.ilike(f'%{query}%'),Chapter.description.ilike(f'%{query}%'),Chapter.remarks.ilike(f'%{query}%'))).all()
+
+    quizzes = Quiz.query.filter(or_(Quiz.name.ilike(f'%{query}%'),Quiz.description.ilike(f'%{query}%'),Quiz.remarks.ilike(f'%{query}%'))).all()
+
+    return render_template('user_search.html',subjects=subjects,chapters=chapters,quizzes=quizzes)
+

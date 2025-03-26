@@ -20,15 +20,22 @@
                 </li>
                 
             </ul>
-            <div>hello</div>
         </div>
     </nav>
+    <div class="mt-4">
+        <form action="{{ url_for('controllers.admin_search') }}" method="GET" class="mb-4">
+            <div class="input-group">
+                <input type="text" name="query" class="form-control" placeholder="Search users, subjects, chapters, quizzes, or questions...">
+                <button type="submit" class="btn btn-primary">Search</button>
+            </div>
+        </form>
+    </div>
     <div class="text-center text-success fw-bold"><strong>Welcome Admin</strong></div>
     <div class="container-fluid">
         <a href="{{url_for('controllers.subject_create')}}" class="btn btn-primary">Add Subject</a>
         {% for subject in subjects %}
         <div class="row mt-4">
-            <div clas="col-md-3">
+            <div clas="col-sm">
                 <div class="card">
                     <div class="card-body md-3">
                         <h5 class="card-title">

@@ -1,0 +1,36 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<div class="container bg-light">
+    <h2>Search Results for "{{ request.args.get('query', '') }}"</h2>
+    
+    <h3>Subjects</h3>
+    <ul>
+    {% for subject in subjects %}
+        <li>{{ subject.name }} - {{ subject.description }} {{subject.remarks}}</li>
+    {% else %}
+        <li>No subjects found</li>
+    {% endfor %}
+    </ul>
+    
+    <h3>Chapters</h3>
+    <ul>
+        {% for chapter in chapters %}
+        <li>{{ chapter.name }} - {{ chapter.description }} {{chapter.remarks}}</li>
+    {% else %}
+        <li>No chapters found</li>
+    {% endfor %}
+    </ul>
+
+    <h3>Quizzes</h3>
+    <ul>
+    {% for quiz in quizzes %}
+        <li>{{ quiz.name }} - {{ quiz.description }} {{quiz.remarks}}</li>
+    {% else %}
+        <li>No quizzes found</li>
+    {% endfor %}
+    </ul>
+    
+    <a href="{{ url_for('controllers.user_dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
+</div>
+{% endblock %}
